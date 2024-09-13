@@ -8,12 +8,12 @@ from aiogram.types import FSInputFile
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
 
-# Получаем переменные окружения
+# Получаем переменную API_TOKEN из параметров окружения
 API_TOKEN = os.getenv('API_TOKEN')
 if not API_TOKEN:
     raise ValueError("API_TOKEN is missing. Check your environment variables or .env file.")
-UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER')
-OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
+UPLOAD_FOLDER = 'uploads'
+OUTPUT_FOLDER = 'outputs'
 
 # Инициализация бота и диспетчера
 logging.basicConfig(level=logging.INFO)

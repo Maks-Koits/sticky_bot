@@ -14,6 +14,5 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY bot.py /app/
-COPY .env /app/
 
 CMD ["python", "bot.py"]
