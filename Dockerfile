@@ -8,7 +8,7 @@ RUN apt-get update && \
     libxext6 \
     libxrender-dev && \
     pip install --upgrade pip && \
-    pip install --no-cache-dir aiogram python-dotenv \
+    pip install aiogram python-dotenv \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -1,15 +1,10 @@
 import logging
 import os
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ParseMode
 from aiogram.utils import executor
 import subprocess
-from dotenv import load_dotenv
 
-# Загружаем переменные окружения из .env файла
-load_dotenv()
-
-# Настройки из .env файла
+# Получаем переменные окружения
 API_TOKEN = os.getenv('API_TOKEN')
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER')
 OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
