@@ -10,6 +10,8 @@ from aiogram import Router
 
 # Получаем переменные окружения
 API_TOKEN = os.getenv('API_TOKEN')
+if not API_TOKEN:
+    raise ValueError("API_TOKEN is missing. Check your environment variables or .env file.")
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER')
 OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
 
