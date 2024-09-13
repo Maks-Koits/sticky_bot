@@ -36,7 +36,7 @@ if not os.path.exists(OUTPUT_FOLDER):
 # Обработчик для команды /start
 @router.message(Command(commands=["start"]))
 async def start(message: Message):
-    await message.answer("Здравствуйте! Отправьте фото, затем аудиофайл и название.")
+    await message.answer("Здравствуйте! Отправьте фото, затем голосовое сообщение и название.")
 
 
 # Обработчик для получения фото
@@ -48,38 +48,45 @@ async def handle_photo(message: Message):
     # Загрузка фото
     await bot.download(file_id, file_path)
 
-    await message.answer("Фото получено. Пожалуйста, отправьте аудиофайл.")
+    await message.answer("Фото получено. Пожалуйста, отправьте голосовое сообщение.")
 
 
-# Обработчик для получения аудиофайла
-@router.message(lambda message: message.audio)
-async def handle_audio(message: Message):
-    file_id = message.audio.file_id
-    file_path = f"{UPLOAD_FOLDER}/audio.mp3"
+# Обработчик для получения голосового сообщения
+@router.message(lambda message: message.voice)
+async def handle_voice(message: Message):
+    file_id = message.voice.file_id
+    file_path = f"{UPLOAD_FOLDER}/voice.ogg"
 
-    # Загрузка аудиофайла
+    # Загрузка голосового сообщения
     await bot.download(file_id, file_path)
 
-    await message.answer("Аудиофайл получен. Пожалуйста, отправьте название видео.")
+    await message.answer("Голосовое сообщение получено. Пожалуйста, отправьте название видео.")
 
 
 # Обработчик для получения названия видео и создания видеофайла
 @router.message(lambda message: message.text)
 async def handle_title(message: Message):
-    # Проверяем, что фото и аудиофайл загружены
-    if not os.path.exists(f"{UPLOAD_FOLDER}/image.jpg") or not os.path.exists(f"{UPLOAD_FOLDER}/audio.mp3"):
-        await message.answer("Не все файлы загружены. Пожалуйста, отправьте фото, аудиофайл и название.")
+    # Проверяем, что фото и голосовое сообщение загружены
+    if not os.path.exists(f"{UPLOAD_FOLDER}/image.jpg") or not os.path.exists(f"{UPLOAD_FOLDER}/voice.ogg"):
+        await message.answer("Не все файлы загружены. Пожалуйста, отправьте фото, голосовое сообщение и название.")
         return
 
     title = message.text
     output_file = f"{OUTPUT_FOLDER}/{title}.mp4"
+
+    # Конвертируем голосовое сообщение из .ogg в .mp3 для ffmpeg
+    audio_mp3 = f"{UPLOAD_FOLDER}/audio.mp3"
+    convert_command = [
+        'ffmpeg', '-i', f"{UPLOAD_FOLDER}/voice.ogg", audio_mp3
+    ]
+    subprocess.run(convert_command)
 
     # Команда для создания видео с помощью ffmpeg
     command = [
         'ffmpeg',
         '-loop', '1',
         '-i', f"{UPLOAD_FOLDER}/image.jpg",
-        '-i', f"{UPLOAD_FOLDER}/audio.mp3",
+        '-i', audio_mp3,
         '-c:v', 'libx264',
         '-c:a', 'aac',
         '-b:a', '192k',
@@ -95,7 +102,8 @@ async def handle_title(message: Message):
 
     # Удаление временных файлов
     os.remove(f"{UPLOAD_FOLDER}/image.jpg")
-    os.remove(f"{UPLOAD_FOLDER}/audio.mp3")
+    os.remove(f"{UPLOAD_FOLDER}/voice.ogg")
+    os.remove(audio_mp3)
     os.remove(output_file)
 
 
