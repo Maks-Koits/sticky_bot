@@ -7,6 +7,7 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
+from aiogram.filters import ContentTypesFilter
 from aiogram.enums import ContentType
 
 # Получаем переменную API_TOKEN из параметров окружения
@@ -40,7 +41,7 @@ async def start(message: Message):
 
 
 # Обработчик для получения фото
-@router.message(content_types=[ContentType.PHOTO])
+@router.message(ContentTypesFilter(content_types=[ContentType.PHOTO]))
 async def handle_photo(message: Message):
     file_id = message.photo[-1].file_id
     file_path = f"{UPLOAD_FOLDER}/image.jpg"
@@ -52,7 +53,7 @@ async def handle_photo(message: Message):
 
 
 # Обработчик для получения аудиофайла
-@router.message(content_types=[ContentType.AUDIO])
+@router.message(ContentTypesFilter(content_types=[ContentType.AUDIO]))
 async def handle_audio(message: Message):
     file_id = message.audio.file_id
     file_path = f"{UPLOAD_FOLDER}/audio.mp3"
