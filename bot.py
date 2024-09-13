@@ -1,8 +1,12 @@
 import logging
 import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
 import subprocess
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.types import FSInputFile
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram import Router
 
 # Получаем переменные окружения
 API_TOKEN = os.getenv('API_TOKEN')
@@ -12,7 +16,8 @@ OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
 # Инициализация бота и диспетчера
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher(storage=MemoryStorage())
+router = Router()
 
 # Создаем папки, если их еще нет
 if not os.path.exists(UPLOAD_FOLDER):
@@ -21,7 +26,12 @@ if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
 
-@dp.message_handler(content_types=[types.ContentType.PHOTO])
+@router.message(Command("start"))
+async def start(message: types.Message):
+    await message.reply("Здравствуйте! Отправьте фото, затем аудиофайл и название.")
+
+
+@router.message(content_types=types.ContentType.PHOTO)
 async def handle_photo(message: types.Message):
     file_id = message.photo[-1].file_id
     file = await bot.get_file(file_id)
@@ -29,7 +39,7 @@ async def handle_photo(message: types.Message):
     await message.reply("Фото получено. Пожалуйста, отправьте аудиофайл и название.")
 
 
-@dp.message_handler(content_types=[types.ContentType.AUDIO])
+@router.message(content_types=types.ContentType.AUDIO)
 async def handle_audio(message: types.Message):
     file_id = message.audio.file_id
     file = await bot.get_file(file_id)
@@ -37,7 +47,7 @@ async def handle_audio(message: types.Message):
     await message.reply("Аудиофайл получен. Пожалуйста, отправьте название видео.")
 
 
-@dp.message_handler()
+@router.message()
 async def handle_title(message: types.Message):
     if os.path.exists(f"{UPLOAD_FOLDER}/image.jpg") and os.path.exists(f"{UPLOAD_FOLDER}/audio.mp3"):
         title = message.text
@@ -55,8 +65,8 @@ async def handle_title(message: types.Message):
         ]
         subprocess.run(command)
 
-        with open(output_file, 'rb') as video:
-            await bot.send_video(message.chat.id, video, caption=f"Вот ваше видео: {title}.mp4")
+        video = FSInputFile(output_file)
+        await bot.send_video(message.chat.id, video, caption=f"Вот ваше видео: {title}.mp4")
 
         # Удаление временных файлов
         os.remove(f"{UPLOAD_FOLDER}/image.jpg")
@@ -66,5 +76,10 @@ async def handle_title(message: types.Message):
         await message.reply("Не все файлы загружены. Пожалуйста, отправьте фото, аудиофайл и название.")
 
 
+async def main():
+    dp.include_router(router)
+    await dp.start_polling(bot)
+
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
