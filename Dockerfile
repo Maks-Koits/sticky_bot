@@ -1,5 +1,5 @@
 FROM python:3.10-slim
-
+ENV PIP_NO_CACHE_DIR=1
 RUN apt-get update && \
     apt-get install -y \
     ffmpeg \
@@ -10,9 +10,5 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install aiogram==3.0.0 python-dotenv \
     && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
-
-COPY bot.py /app/
-
 CMD ["python", "bot.py"]

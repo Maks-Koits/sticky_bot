@@ -7,11 +7,16 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
+from aiogram.filters import ContentTypeFilter
 
 # Получаем переменную API_TOKEN из параметров окружения
 API_TOKEN = os.getenv('API_TOKEN')
+
+# Проверяем, что токен был передан
 if not API_TOKEN:
-    raise ValueError("API_TOKEN is missing. Check your environment variables or .env file.")
+    raise ValueError("API_TOKEN is missing. Please pass it via environment variables.")
+
+# Задаем папки для загрузки и вывода файлов
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'outputs'
 
@@ -33,7 +38,8 @@ async def start(message: types.Message):
     await message.reply("Здравствуйте! Отправьте фото, затем аудиофайл и название.")
 
 
-@router.message(content_types=types.ContentType.PHOTO)
+# Фильтр для сообщений с фото
+@router.message(ContentTypeFilter(types.ContentType.PHOTO))
 async def handle_photo(message: types.Message):
     file_id = message.photo[-1].file_id
     file = await bot.get_file(file_id)
@@ -41,7 +47,8 @@ async def handle_photo(message: types.Message):
     await message.reply("Фото получено. Пожалуйста, отправьте аудиофайл и название.")
 
 
-@router.message(content_types=types.ContentType.AUDIO)
+# Фильтр для сообщений с аудиофайлами
+@router.message(ContentTypeFilter(types.ContentType.AUDIO))
 async def handle_audio(message: types.Message):
     file_id = message.audio.file_id
     file = await bot.get_file(file_id)
@@ -49,6 +56,7 @@ async def handle_audio(message: types.Message):
     await message.reply("Аудиофайл получен. Пожалуйста, отправьте название видео.")
 
 
+# Обработка названия видео
 @router.message()
 async def handle_title(message: types.Message):
     if os.path.exists(f"{UPLOAD_FOLDER}/image.jpg") and os.path.exists(f"{UPLOAD_FOLDER}/audio.mp3"):
