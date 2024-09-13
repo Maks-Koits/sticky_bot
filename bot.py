@@ -7,7 +7,6 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
-from aiogram.filters import ContentTypesFilter
 from aiogram.enums import ContentType
 
 # Получаем переменную API_TOKEN из параметров окружения
@@ -41,7 +40,7 @@ async def start(message: Message):
 
 
 # Обработчик для получения фото
-@router.message(ContentTypesFilter(content_types=[ContentType.PHOTO]))
+@router.message(lambda message: message.photo)
 async def handle_photo(message: Message):
     file_id = message.photo[-1].file_id
     file_path = f"{UPLOAD_FOLDER}/image.jpg"
@@ -53,7 +52,7 @@ async def handle_photo(message: Message):
 
 
 # Обработчик для получения аудиофайла
-@router.message(ContentTypesFilter(content_types=[ContentType.AUDIO]))
+@router.message(lambda message: message.audio)
 async def handle_audio(message: Message):
     file_id = message.audio.file_id
     file_path = f"{UPLOAD_FOLDER}/audio.mp3"
@@ -65,7 +64,7 @@ async def handle_audio(message: Message):
 
 
 # Обработчик для получения названия видео и создания видеофайла
-@router.message()
+@router.message(lambda message: message.text)
 async def handle_title(message: Message):
     # Проверяем, что фото и аудиофайл загружены
     if not os.path.exists(f"{UPLOAD_FOLDER}/image.jpg") or not os.path.exists(f"{UPLOAD_FOLDER}/audio.mp3"):
